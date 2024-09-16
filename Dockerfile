@@ -1,23 +1,24 @@
-# ใช้ Bun image เป็นฐาน
-FROM bun:latest
+# ใช้ภาพฐานจาก Ubuntu
+FROM ubuntu:22.04
 
-# ตั้งค่า working directory
+# ติดตั้ง dependencies ที่จำเป็น
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    && apt-get clean
+
+# ติดตั้ง Bun
+RUN curl -fsSL https://bun.sh/install | bash
+
+# เพิ่ม Bun ลงใน PATH
+ENV BUN_INSTALL="/root/.bun"
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+
+# ตั้ง working directory
 WORKDIR /app
 
-# คัดลอกไฟล์ package.json และ bun.lockb ไปยัง container
-COPY package.json bun.lockb ./
-
-# ติดตั้ง dependencies
-RUN bun install
-
-# คัดลอกไฟล์โค้ดทั้งหมดไปยัง container
+# คัดลอกไฟล์ทั้งหมดจากโฟลเดอร์ปัจจุบันไปยัง /app
 COPY . .
 
-# สร้างไฟล์ JavaScript จาก TypeScript (ถ้าจำเป็น)
-RUN bun run build
-
-# เปิดพอร์ตที่ใช้ในแอปพลิเคชัน
-EXPOSE 3000
-
-# รันแอปพลิเคชัน
+# รันโปรเจกต์ด้วยคำสั่ง `bun run start`
 CMD ["bun", "run", "start"]
